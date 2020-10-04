@@ -47,7 +47,7 @@ class ActionSessionStart(Action):
 
             # injecting sys_id so that I can work in rasa shell
             id = "62826bf03710200044e0bfc8bcbe5df1"
-            
+
             if id == anonymous_profile.get("id"):
                 user_profile = anonymous_profile
             else:    
@@ -132,6 +132,7 @@ class OpenIncidentForm(FormAction):
             "incident_title",
             "problem_description",
             "priority",
+            "email",
             "confirm"
         ]
 
@@ -173,11 +174,14 @@ class OpenIncidentForm(FormAction):
                 )
             ],
             "priority": self.from_entity(entity="priority"),
+            "email": [self.from_text()],
             "confirm": [
                 self.from_intent(value=True, intent="affirm"),
                 self.from_intent(value=False, intent="deny"),
             ],
         }
+
+
 
     def validate_priority(
         self,
@@ -193,6 +197,17 @@ class OpenIncidentForm(FormAction):
         else:
             dispatcher.utter_message(template="utter_no_priority")
             return {"priority": None}
+    
+    def validate_email(
+        self,
+        value: Text,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> Dict[Text, Any]:
+        user_profile = tracker.get_slot("user_profile")
+        user_email = user_profile.get("email")
+        return {"email": user_email}
 
     def build_slot_sets(self, user_profile) -> List[Dict]:  
         """Helper method to build slot sets"""
@@ -200,6 +215,7 @@ class OpenIncidentForm(FormAction):
             AllSlotsReset(),
             SlotSet("user_profile", user_profile),
             SlotSet("user_name", user_profile.get("name"))
+            
         ]   
 
     async def submit(
@@ -211,6 +227,7 @@ class OpenIncidentForm(FormAction):
         """Create an incident and return the details"""
 
         user_profile = tracker.get_slot("user_profile")
+        #SlotSet("email", user_profile.get("email"))
         confirm = tracker.get_slot("confirm")
 
         if not confirm:
@@ -237,7 +254,7 @@ class OpenIncidentForm(FormAction):
             if incident_number:
                 message = (
                     f"Incident {incident_number} has been opened for you. "
-                    f"A support specialist will reach out to you soon."
+                    f"A support specialist will reach out to you soon"
                 )
             else:
                 message = (
