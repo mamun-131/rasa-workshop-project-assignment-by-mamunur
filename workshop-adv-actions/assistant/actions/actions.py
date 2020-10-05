@@ -55,9 +55,11 @@ class ActionSessionStart(Action):
                 user_profile = await snow.get_user_profile(id)
 
             slots.append(SlotSet(key="user_profile", value=user_profile))
+           # slots.append(SlotSet(key="user_email", value=user_profile.get("email")))
 
         if user_name is None:
             slots.append(SlotSet(key="user_name", value=user_profile.get("name")))
+            slots.append(SlotSet(key="user_email", value=user_profile.get("email")))
 
         return slots
 
