@@ -23,6 +23,8 @@ slots:
   user_profile:
     type: unfeaturized
   user_name:
+    type: unfeaturized
+  user_email:
     type: unfeaturized   
   confirm:
     type: unfeaturized
@@ -61,6 +63,8 @@ responses:
         title: high
   utter_no_priority:
   - text: Sorry "{priority}" is not a valid priority. Please try again.
+  utter_ask_email:
+  - text: "This is your email : {user_email}. Press the enter button."
   utter_help:
   - text: "I can help you open a service request ticket, or check the status of your open incidents.
       \nYou can ask me things like:
