@@ -134,7 +134,6 @@ class OpenIncidentForm(FormAction):
             "incident_title",
             "problem_description",
             "priority",
-            "email",
             "confirm"
         ]
 
@@ -176,7 +175,6 @@ class OpenIncidentForm(FormAction):
                 )
             ],
             "priority": self.from_entity(entity="priority"),
-            "email": [self.from_text()],
             "confirm": [
                 self.from_intent(value=True, intent="affirm"),
                 self.from_intent(value=False, intent="deny"),
@@ -200,17 +198,6 @@ class OpenIncidentForm(FormAction):
             dispatcher.utter_message(template="utter_no_priority")
             return {"priority": None}
     
-    def validate_email(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        user_profile = tracker.get_slot("user_profile")
-        user_email = user_profile.get("email")
-        return {"email": user_email}
-
     def build_slot_sets(self, user_profile) -> List[Dict]:  
         """Helper method to build slot sets"""
         return [

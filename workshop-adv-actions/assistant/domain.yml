@@ -34,8 +34,6 @@ slots:
     type: unfeaturized
   problem_description:
     type: unfeaturized
-  email:
-    type: unfeaturized
   requested_slot:
     type: unfeaturized
     
@@ -63,8 +61,6 @@ responses:
         title: high
   utter_no_priority:
   - text: Sorry "{priority}" is not a valid priority. Please try again.
-  utter_ask_email:
-  - text: "This is your email : {user_email}. Press the enter button."
   utter_help:
   - text: "I can help you open a service request ticket, or check the status of your open incidents.
       \nYou can ask me things like:
@@ -81,7 +77,7 @@ responses:
           \n    Title: {incident_title}
           \n    Description: {problem_description}          
           \n    Priority: {priority}
-          \n    Email: {email}"
+          \n    Email: {user_email}"
     buttons:
     - title: Yes
       payload: /affirm
