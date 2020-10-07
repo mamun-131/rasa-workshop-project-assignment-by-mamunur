@@ -30,7 +30,7 @@ class ActionSessionStart(Action):
         return "action_session_start"
 
     @staticmethod
-    async def fetch_slots(tracker: Tracker) -> List[EventType]:
+    async def fetch_slots(dispatcher: CollectingDispatcher,tracker: Tracker) -> List[EventType]:
         """Add user profile to the slots if it is not set."""
 
         slots = []
@@ -46,7 +46,9 @@ class ActionSessionStart(Action):
             id = get_user_id_from_event(tracker)
 
             # injecting sys_id so that I can work in rasa shell
-            id = "62826bf03710200044e0bfc8bcbe5df1"
+            connection_status = await snow.connection_status()
+            if connection_status == True:
+                id = "62826bf03710200044e0bfc8bcbe5df1"
 
             if id == anonymous_profile.get("id"):
                 user_profile = anonymous_profile
@@ -55,11 +57,15 @@ class ActionSessionStart(Action):
                 user_profile = await snow.get_user_profile(id)
 
             slots.append(SlotSet(key="user_profile", value=user_profile))
-           # slots.append(SlotSet(key="user_email", value=user_profile.get("email")))
 
         if user_name is None:
             slots.append(SlotSet(key="user_name", value=user_profile.get("name")))
             slots.append(SlotSet(key="user_email", value=user_profile.get("email")))
+
+        # valideting connect with snow server
+        connection_status = await snow.connection_status()
+        if connection_status == False:
+            dispatcher.utter_message("Connection Error: There is no connection with ServiceNow server. So, you will be treated as anonymous")
 
         return slots
 
@@ -76,7 +82,7 @@ class ActionSessionStart(Action):
 
         # any slots that should be carried over should come after the
         # `session_started` event
-        newEvents = await self.fetch_slots(tracker)
+        newEvents = await self.fetch_slots(dispatcher, tracker)
         events.extend(newEvents)
 
         # an `action_listen` should be added at the end as a user message follows
@@ -119,6 +125,11 @@ class IncidentStatus(Action):
             else:
                 message = f"{incidents_result.get('error')}"
 
+        # valideting connect with snow server
+        connection_status = await snow.connection_status()
+        if connection_status == False:
+            dispatcher.utter_message("Connection Error: There is no connection with ServiceNow server. So, you will be treated as anonymous")
+
         dispatcher.utter_message(message)
         return []
 
@@ -134,7 +145,6 @@ class OpenIncidentForm(FormAction):
             "incident_title",
             "problem_description",
             "priority",
-            "email",
             "confirm"
         ]
 
@@ -176,7 +186,6 @@ class OpenIncidentForm(FormAction):
                 )
             ],
             "priority": self.from_entity(entity="priority"),
-            "email": [self.from_text()],
             "confirm": [
                 self.from_intent(value=True, intent="affirm"),
                 self.from_intent(value=False, intent="deny"),
@@ -200,17 +209,6 @@ class OpenIncidentForm(FormAction):
             dispatcher.utter_message(template="utter_no_priority")
             return {"priority": None}
     
-    def validate_email(
-        self,
-        value: Text,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any],
-    ) -> Dict[Text, Any]:
-        user_profile = tracker.get_slot("user_profile")
-        user_email = user_profile.get("email")
-        return {"email": user_email}
-
     def build_slot_sets(self, user_profile) -> List[Dict]:  
         """Helper method to build slot sets"""
         return [
