@@ -29,8 +29,17 @@ class SnowAPI:
         # asynchronously close the client session.
         loop = asyncio.get_event_loop()
         task = loop.create_task(self.close_session())
-        #loop.add_signal_handler(signal.SIGTERM, task)
+        loop.add_signal_handler(signal.SIGTERM, task)
+
+        # is_connected will track connection to despatche data to action server 
+        self.is_connected = True
+        
         self._loop = loop
+
+
+    # this method will prodvide connection status to action server
+    async def connection_status(self) -> Any: 
+        return self.is_connected
 
     async def open_session(self) -> ClientSession:  
         """Opens the client session if it hasn't been opened yet,
@@ -42,6 +51,7 @@ class SnowAPI:
             The cached client session.
         """      
         if self._session is not None:
+            self.is_connected = True
             return self._session
 
         # Default request headers
@@ -54,6 +64,8 @@ class SnowAPI:
         return self._session
 
     async def close_session(self):
+        # connection is closed
+        self.is_connected = False
         if self._session is not None:
             await self._session.close()  
 
